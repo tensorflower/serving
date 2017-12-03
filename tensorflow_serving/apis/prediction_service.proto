@@ -8,6 +8,7 @@ import "tensorflow_serving/apis/get_model_metadata.proto";
 import "tensorflow_serving/apis/inference.proto";
 import "tensorflow_serving/apis/predict.proto";
 import "tensorflow_serving/apis/regression.proto";
+import "tensorflow_serving/config/model_server_config.proto";
 
 // open source marker; do not remove
 // PredictionService provides access to machine-learned models loaded by
@@ -21,11 +22,18 @@ service PredictionService {
 
   // Predict -- provides access to loaded TensorFlow model.
   rpc Predict(PredictRequest) returns (PredictResponse);
-
+  
   // MultiInference API for multi-headed models.
   rpc MultiInference(MultiInferenceRequest) returns (MultiInferenceResponse);
 
   // GetModelMetadata - provides access to metadata for loaded models.
   rpc GetModelMetadata(GetModelMetadataRequest)
-      returns (GetModelMetadataResponse);
+      returns (GetModelMetadataResponse);  
+	  
+  // DynamicReload - Dynamic add/update modesl from config.
+  rpc DynamicReload(ModelServerConfig) returns (ReloadResponse);
+}
+
+message ReloadResponse{
+   string reload_status = 1 ;
 }

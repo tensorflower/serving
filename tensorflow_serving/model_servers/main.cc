@@ -113,6 +113,7 @@ using tensorflow::serving::PredictResponse;
 using tensorflow::serving::RegressionRequest;
 using tensorflow::serving::RegressionResponse;
 using tensorflow::serving::PredictionService;
+using tensorflow::serving::ReloadResponse ;
 
 namespace {
 
@@ -267,6 +268,15 @@ class PredictionServiceImpl final : public PredictionService::Service {
     }
     return status;
   }
+  
+  grpc::Status DynamicReload(ServerContext* context, const ModelServerConfig* request,
+                       ReloadResponse* response) override {
+    const grpc::Status status = ToGRPCStatus(core_->ReloadConfig(*request));
+    if (!status.ok()) {
+       VLOG(1) << "Server reload failed: " << status.error_message();
+    }
+      return status;
+  }
 
  private:
   std::unique_ptr<ServerCore> core_;
@@ -302,6 +312,7 @@ tensorflow::serving::PlatformConfigMap ParsePlatformConfigMap(
 int main(int argc, char** argv) {
   tensorflow::int32 port = 8500;
   bool enable_batching = false;
+  float per_process_gpu_memory_fraction = 1.0f;
   tensorflow::string batching_parameters_file;
   tensorflow::string model_name = "default";
   tensorflow::int32 file_system_poll_wait_seconds = 1;
@@ -346,7 +357,11 @@ int main(int argc, char** argv) {
                        "If non-empty, read an ascii PlatformConfigMap protobuf "
                        "from the supplied file name, and use that platform "
                        "config instead of the Tensorflow platform. (If used, "
-                       "--enable_batching is ignored.)")};
+                       "--enable_batching is ignored.)"),
+      tensorflow::Flag("per_process_gpu_memory_fraction", 
+                       &per_process_gpu_memory_fraction,
+                       "per_process_gpu_memory_fraction in percent,choose(0,1],default: 1.0,It will take up all the gpu memory")};
+					   
   string usage = tensorflow::Flags::Usage(argv[0], flag_list);
   const bool parse_result = tensorflow::Flags::Parse(&argc, argv, flag_list);
   if (!parse_result || (model_base_path.empty() && model_config_file.empty())) {
@@ -357,7 +372,10 @@ int main(int argc, char** argv) {
   if (argc != 1) {
     std::cout << "unknown argument: " << argv[1] << "\n" << usage;
   }
-
+  if (!(per_process_gpu_memory_fraction > 0 && per_process_gpu_memory_fraction <= 1)){
+	std::cout << "per_process_gpu_memory_fraction:" << per_process_gpu_memory_fraction <<" is not in the range of 0 to 1" <<  "\n" << usage;
+	return -1;
+  }
   // For ServerCore Options, we leave servable_state_monitor_creator unspecified
   // so the default servable_state_monitor_creator will be used.
   ServerCore::Options options;
@@ -389,6 +407,9 @@ int main(int argc, char** argv) {
           << "You supplied --batching_parameters_file without "
              "--enable_batching";
     }
+    tensorflow::ConfigProto* session_config = session_bundle_config.mutable_session_config();
+    tensorflow::GPUOptions* gpu_options = session_config->mutable_gpu_options();
+    gpu_options->set_per_process_gpu_memory_fraction(per_process_gpu_memory_fraction);
 
     session_bundle_config.mutable_session_config()
         ->set_intra_op_parallelism_threads(tensorflow_session_parallelism);
