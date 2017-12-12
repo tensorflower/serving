@@ -65,7 +65,7 @@ particular attention to `apt-get install` and `pip install` commands which you
 may need to run.
 
 ### TensorFlow Serving Python API PIP package
-
+Tensorflow serving api does not support python3 currently,but you can copy this module into python3's lib and it works!
 To run Python client code without the need to install Bazel, you can install
 the `tensorflow-serving-api` PIP package using:
 
@@ -159,8 +159,14 @@ targets or the entire source tree.
 
 To build the entire tree, execute:
 
+* for CPU
 ```shell
 bazel build -c opt tensorflow_serving/...
+```
+* for GPU (requires cuda version above 8.0.61, cudnn version above 6)
+```shell
+bazel clean --expunge && export TF_NEED_CUDA=1
+bazel build -c opt --config=cuda tensorflow_serving/...
 ```
 
 Binaries are placed in the bazel-bin directory, and can be run using a command
