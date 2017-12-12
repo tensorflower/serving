@@ -43,7 +43,7 @@ tracking requests and bugs.**
 
 See [install instructions](tensorflow_serving/g3doc/setup.md).
 
-## Tutorials
+## 基础、高级教程
 
 * [Basic tutorial](tensorflow_serving/g3doc/serving_basic.md)
 * [Advanced tutorial](tensorflow_serving/g3doc/serving_advanced.md)
