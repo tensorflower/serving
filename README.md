@@ -39,7 +39,7 @@ points; perhaps the most useful ways to extend the system are:
 **We use [GitHub issues](https://github.com/tensorflow/serving/issues) for
 tracking requests and bugs.**
 
-# Download and Setup
+# 下载安装（此流程安装的为cpu版本）
 
 See [install instructions](tensorflow_serving/g3doc/setup.md).
 
