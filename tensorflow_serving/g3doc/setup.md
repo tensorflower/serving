@@ -93,7 +93,7 @@ already installed tensorflow-model-server, you should first uninstall it using
 sudo apt-get remove tensorflow-model-server
 ```
 
-### Installing the ModelServer
+### Installing the ModelServer(Is not recommended)
 
 1.  Add TensorFlow Serving distribution URI as a package source (one time setup)
 
